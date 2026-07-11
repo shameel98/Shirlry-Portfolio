@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Shirley Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #0a0a0f; color: #f5f5f7; min-height: 100vh; }
+
+    /* Login */
+    .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { background: #12121a; padding: 3rem; border-radius: 1.5rem; border: 1px solid rgba(168,85,247,0.2); width: 100%; max-width: 400px; }
+    .login-box h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .login-box p { color: #a1a1aa; font-size: 0.9rem; margin-bottom: 2rem; }
+    .login-box input { width: 100%; padding: 0.8rem 1.2rem; background: #0a0a0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; color: #f5f5f7; font-family: inherit; font-size: 0.9rem; margin-bottom: 1rem; outline: none; }
+    .login-box input:focus { border-color: #a855f7; }
+    .login-box button { width: 100%; padding: 0.8rem; background: linear-gradient(135deg, #a855f7, #6366f1); color: white; border: none; border-radius: 100px; font-family: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .login-error { color: #f5576c; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+
+    /* Dashboard */
+    .dashboard { display: none; }
+    .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 240px; background: #12121a; border-right: 1px solid rgba(255,255,255,0.05); padding: 2rem 0; overflow-y: auto; }
+    .sidebar-logo { font-size: 1.5rem; font-weight: 700; padding: 0 1.5rem; margin-bottom: 2rem; color: #a855f7; }
+    .sidebar a { display: block; padding: 0.75rem 1.5rem; color: #a1a1aa; text-decoration: none; font-size: 0.9rem; transition: 0.2s; border-left: 3px solid transparent; }
+    .sidebar a:hover, .sidebar a.active { color: #f5f5f7; background: rgba(168,85,247,0.05); border-left-color: #a855f7; }
+    .sidebar .logout { position: absolute; bottom: 2rem; left: 0; right: 0; padding: 0.75rem 1.5rem; color: #f5576c; }
+
+    .main { margin-left: 240px; padding: 2rem 3rem; }
+    .main h2 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .main .subtitle { color: #a1a1aa; margin-bottom: 2rem; font-size: 0.9rem; }
+
+    /* Cards & Forms */
+    .card { background: #12121a; border: 1px solid rgba(255,255,255,0.05); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-header h3 { font-size: 1rem; }
+    .card-actions { display: flex; gap: 0.5rem; }
+    .card-actions button { padding: 0.4rem 0.8rem; border: none; border-radius: 0.5rem; font-family: inherit; font-size: 0.8rem; cursor: pointer; }
+    .btn-edit { background: rgba(168,85,247,0.15); color: #a855f7; }
+    .btn-delete { background: rgba(245,87,108,0.15); color: #f5576c; }
+    .btn-save { background: linear-gradient(135deg, #a855f7, #6366f1); color: white; padding: 0.6rem 1.5rem; border: none; border-radius: 100px; font-family: inherit; font-size: 0.9rem; cursor: pointer; margin-top: 1rem; }
+    .btn-add { background: rgba(168,85,247,0.1); border: 1px dashed rgba(168,85,247,0.4); color: #a855f7; padding: 1rem; border-radius: 1rem; width: 100%; font-family: inherit; font-size: 0.9rem; cursor: pointer; margin-bottom: 1rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.8rem; color: #a1a1aa; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 0.7rem 1rem; background: #0a0a0f; border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; color: #f5f5f7; font-family: inherit; font-size: 0.9rem; outline: none; }
+    .form-group input:focus, .form-group textarea:focus { border-color: #a855f7; }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .toast { position: fixed; bottom: 2rem; right: 2rem; background: #a855f7; color: white; padding: 1rem 1.5rem; border-radius: 0.75rem; font-size: 0.9rem; display: none; z-index: 999; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-panel { display: none; }
+    .section-panel.active { display: block; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 100%; position: relative; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 1rem; display: flex; gap: 0.5rem; overflow-x: auto; }
+      .sidebar a { white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; padding: 0.5rem 1rem; }
+      .sidebar a.active { border-bottom-color: #a855f7; }
+      .sidebar-logo { display: none; }
+      .sidebar .logout { position: static; }
+      .main { margin-left: 0; padding: 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <h1>Admin Panel</h1>
+      <p>Shirley Portfolio Management</p>
+      <input type="text" id="loginUser" placeholder="Username">
+      <input type="password" id="loginPass" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <p class="login-error" id="loginError">Invalid credentials</p>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard" id="dashboard">
+    <nav class="sidebar">
+      <div class="sidebar-logo">S. Admin</div>
+      <a href="#" data-section="hero" class="active">Hero</a>
+      <a href="#" data-section="stats">Stats</a>
+      <a href="#" data-section="method">Method</a>
+      <a href="#" data-section="speaking">Speaking</a>
+      <a href="#" data-section="testimonials">Testimonials</a>
+      <a href="#" data-section="certifications">Certifications</a>
+      <a href="#" data-section="gallery">Gallery</a>
+      <a href="#" data-section="industries">Industries</a>
+      <a href="#" data-section="contact">Contact</a>
+      <a href="#" class="logout" onclick="logout()">← Logout</a>
+    </nav>
+
+    <div class="main">
+      <!-- Hero Section -->
+      <div class="section-panel active" id="panel-hero">
+        <h2>Hero Section</h2>
+        <p class="subtitle">Main landing area content</p>
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group"><label>Badge 1</label><input id="hero-badge_1"></div>
+            <div class="form-group"><label>Badge 2</label><input id="hero-badge_2"></div>
+          </div>
+          <div class="form-group"><label>Tagline</label><input id="hero-tagline"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Title Line 1</label><input id="hero-title_line_1"></div>
+            <div class="form-group"><label>Title Line 2 (gradient)</label><input id="hero-title_line_2"></div>
+          </div>
+          <div class="form-group"><label>Description</label><textarea id="hero-description" rows="4"></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>CTA Button Text</label><input id="hero-cta_text"></div>
+            <div class="form-group"><label>Secondary CTA Text</label><input id="hero-cta_secondary_text"></div>
+          </div>
+          <button class="btn-save" onclick="saveHero()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Stats Section -->
+      <div class="section-panel" id="panel-stats">
+        <h2>Stats</h2>
+        <p class="subtitle">Numbers that impress</p>
+        <button class="btn-add" onclick="addStat()">+ Add Stat</button>
+        <div id="stats-list"></div>
+      </div>
+
+      <!-- Method Section -->
+      <div class="section-panel" id="panel-method">
+        <h2>The Shirley Method</h2>
+        <p class="subtitle">Your 4-step process</p>
+        <button class="btn-add" onclick="addMethod()">+ Add Step</button>
+        <div id="method-list"></div>
+      </div>
+
+      <!-- Speaking Section -->
+      <div class="section-panel" id="panel-speaking">
+        <h2>Speaking Events</h2>
+        <p class="subtitle">Talks and appearances</p>
+        <button class="btn-add" onclick="addSpeaking()">+ Add Event</button>
+        <div id="speaking-list"></div>
+      </div>
+
+      <!-- Testimonials Section -->
+      <div class="section-panel" id="panel-testimonials">
+        <h2>Testimonials</h2>
+        <p class="subtitle">Client feedback</p>
+        <button class="btn-add" onclick="addTestimonial()">+ Add Testimonial</button>
+        <div id="testimonials-list"></div>
+      </div>
+
+      <!-- Certifications Section -->
+      <div class="section-panel" id="panel-certifications">
+        <h2>Certifications</h2>
+        <p class="subtitle">Credentials and badges</p>
+        <button class="btn-add" onclick="addCert()">+ Add Certification</button>
+        <div id="certifications-list"></div>
+      </div>
+
+      <!-- Gallery Section -->
+      <div class="section-panel" id="panel-gallery">
+        <h2>Gallery</h2>
+        <p class="subtitle">Event photos and visuals</p>
+        <button class="btn-add" onclick="addGallery()">+ Add Gallery Item</button>
+        <div id="gallery-list"></div>
+      </div>
+
+      <!-- Industries Section -->
+      <div class="section-panel" id="panel-industries">
+        <h2>Industries</h2>
+        <p class="subtitle">Sectors you serve</p>
+        <button class="btn-add" onclick="addIndustry()">+ Add Industry</button>
+        <div id="industries-list"></div>
+      </div>
+
+      <!-- Contact Section -->
+      <div class="section-panel" id="panel-contact">
+        <h2>Contact Info</h2>
+        <p class="subtitle">How people reach you</p>
+        <div class="card">
+          <div class="form-group"><label>Email</label><input id="contact-email"></div>
+          <div class="form-group"><label>Phone</label><input id="contact-phone"></div>
+          <div class="form-group"><label>LinkedIn URL</label><input id="contact-linkedin_url"></div>
+          <div class="form-group"><label>WhatsApp Number (without +)</label><input id="contact-whatsapp_number"></div>
+          <button class="btn-save" onclick="saveContact()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://wrfbvekawdsfqtyrynad.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyZmJ2ZWthd2RzZnF0eXJ5bmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTA3NjEsImV4cCI6MjA5OTM2Njc2MX0.D3pPMsBBb53g7z_n88g4ZHFuny6jgtJWpkXPDa0lji4';
+
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+    async function api(table, method = 'GET', body = null, query = '') {
+      const opts = { method, headers };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, opts);
+      return res.json();
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // Auth
+    async function login() {
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+      const data = await api('admin_auth', 'GET', null, `?username=eq.${user}&password_hash=eq.${pass}`);
+      if (data.length > 0) {
+        sessionStorage.setItem('admin', 'true');
+        showDashboard();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('admin');
+      location.reload();
+    }
+
+    function showDashboard() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'flex';
+      loadAll();
+    }
+
+    if (sessionStorage.getItem('admin')) showDashboard();
+
+    // Navigation
+    document.querySelectorAll('.sidebar a[data-section]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
+        a.classList.add('active');
+        document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`panel-${a.dataset.section}`).classList.add('active');
+      });
+    });
+
+    // Load all data
+    async function loadAll() {
+      loadHero(); loadStats(); loadMethod(); loadSpeaking();
+      loadTestimonials(); loadCerts(); loadGallery(); loadIndustries(); loadContact();
+    }
+
+    // HERO
+    async function loadHero() {
+      const data = await api('hero');
+      if (data[0]) {
+        Object.keys(data[0]).forEach(k => {
+          const el = document.getElementById(`hero-${k}`);
+          if (el) el.value = data[0][k] || '';
+        });
+      }
+    }
+    async function saveHero() {
+      const data = await api('hero');
+      const id = data[0]?.id;
+      const body = {};
+      ['badge_1','badge_2','tagline','title_line_1','title_line_2','description','cta_text','cta_secondary_text'].forEach(k => {
+        body[k] = document.getElementById(`hero-${k}`).value;
+      });
+      await api('hero', 'PATCH', body, `?id=eq.${id}`);
+      toast('Hero saved!');
+    }
+
+    // CONTACT
+    async function loadContact() {
+      const data = await api('contact_info');
+      if (data[0]) {
+        ['email','phone','linkedin_url','whatsapp_number'].forEach(k => {
+          const el = document.getElementById(`contact-${k}`);
+          if (el) el.value = data[0][k] || '';
+        });
+      }
+    }
+    async function saveContact() {
+      const data = await api('contact_info');
+      const id = data[0]?.id;
+      const body = {};
+      ['email','phone','linkedin_url','whatsapp_number'].forEach(k => {
+        body[k] = document.getElementById(`contact-${k}`).value;
+      });
+      await api('contact_info', 'PATCH', body, `?id=eq.${id}`);
+      toast('Contact saved!');
+    }
+
+    // GENERIC LIST CRUD
+    function renderList(containerId, items, fields, table) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = items.sort((a,b) => a.sort_order - b.sort_order).map(item => `
+        <div class="card" id="card-${item.id}">
+          <div class="card-header">
+            <h3>${item[fields[0].key] || 'Item'}</h3>
+            <div class="card-actions">
+              <button class="btn-edit" onclick="toggleEdit('${item.id}', '${table}', ${JSON.stringify(fields).replace(/"/g, '&quot;')})">Edit</button>
+              <button class="btn-delete" onclick="deleteItem('${table}', '${item.id}', '${containerId}')">Delete</button>
+            </div>
+          </div>
+          <div id="edit-${item.id}" style="display:none">
+            ${fields.map(f => `
+              <div class="form-group">
+                <label>${f.label}</label>
+                ${f.type === 'textarea' ? `<textarea id="field-${item.id}-${f.key}">${item[f.key] || ''}</textarea>` : `<input id="field-${item.id}-${f.key}" value="${(item[f.key] || '').toString().replace(/"/g, '&quot;')}">`}
+              </div>
+            `).join('')}
+            <button class="btn-save" onclick="saveItem('${table}', '${item.id}', ${JSON.stringify(fields).replace(/"/g, '&quot;')}, '${containerId}')">Save</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleEdit(id) {
+      const el = document.getElementById(`edit-${id}`);
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    async function saveItem(table, id, fields, containerId) {
+      const body = {};
+      fields.forEach(f => {
+        const val = document.getElementById(`field-${id}-${f.key}`).value;
+        body[f.key] = f.type === 'number' ? parseInt(val) : val;
+      });
+      await api(table, 'PATCH', body, `?id=eq.${id}`);
+      toast('Saved!');
+      reloadSection(table, containerId, fields);
+    }
+
+    async function deleteItem(table, id, containerId) {
+      if (!confirm('Delete this item?')) return;
+      await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE', headers });
+      document.getElementById(`card-${id}`)?.remove();
+      toast('Deleted!');
+    }
+
+    async function addItem(table, defaults, containerId, fields) {
+      await api(table, 'POST', defaults);
+      toast('Added!');
+      reloadSection(table, containerId, fields);
+    }
+
+    async function reloadSection(table, containerId, fields) {
+      const data = await api(table, 'GET', null, '?order=sort_order');
+      renderList(containerId, data, fields, table);
+    }
+
+    // STATS
+    const statFields = [{key:'number',label:'Number',type:'number'},{key:'suffix',label:'Suffix (+, ×, etc)'},{key:'label',label:'Label'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadStats() { const d = await api('stats','GET',null,'?order=sort_order'); renderList('stats-list', d, statFields, 'stats'); }
+    function addStat() { addItem('stats', {number:0,suffix:'+',label:'New Stat',sort_order:99}, 'stats-list', statFields); }
+
+    // METHOD
+    const methodFields = [{key:'title',label:'Title'},{key:'description',label:'Description',type:'textarea'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadMethod() { const d = await api('method_steps','GET',null,'?order=sort_order'); renderList('method-list', d, methodFields, 'method_steps'); }
+    function addMethod() { addItem('method_steps', {title:'New Step',description:'Description here',sort_order:99}, 'method-list', methodFields); }
+
+    // SPEAKING
+    const speakingFields = [{key:'badge',label:'Badge (e.g. Chief Guest)'},{key:'title',label:'Event Title'},{key:'description',label:'Description',type:'textarea'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadSpeaking() { const d = await api('speaking','GET',null,'?order=sort_order'); renderList('speaking-list', d, speakingFields, 'speaking'); }
+    function addSpeaking() { addItem('speaking', {badge:'Speaker',title:'New Event',description:'Details',sort_order:99}, 'speaking-list', speakingFields); }
+
+    // TESTIMONIALS
+    const testimonialFields = [{key:'author_name',label:'Name'},{key:'author_role',label:'Role'},{key:'quote',label:'Quote',type:'textarea'},{key:'rating',label:'Rating (1-5)',type:'number'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadTestimonials() { const d = await api('testimonials','GET',null,'?order=sort_order'); renderList('testimonials-list', d, testimonialFields, 'testimonials'); }
+    function addTestimonial() { addItem('testimonials', {author_name:'Name',author_role:'Role',quote:'Quote here',rating:5,sort_order:99}, 'testimonials-list', testimonialFields); }
+
+    // CERTIFICATIONS
+    const certFields = [{key:'name',label:'Certification Name'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadCerts() { const d = await api('certifications','GET',null,'?order=sort_order'); renderList('certifications-list', d, certFields, 'certifications'); }
+    function addCert() { addItem('certifications', {name:'New Certification',sort_order:99}, 'certifications-list', certFields); }
+
+    // GALLERY
+    const galleryFields = [{key:'title',label:'Title'},{key:'gradient',label:'Gradient CSS'},{key:'image_url',label:'Image URL (optional)'},{key:'grid_class',label:'Grid Class (tall/wide/empty)'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadGallery() { const d = await api('gallery','GET',null,'?order=sort_order'); renderList('gallery-list', d, galleryFields, 'gallery'); }
+    function addGallery() { addItem('gallery', {title:'New Item',gradient:'linear-gradient(135deg, #667eea, #764ba2)',grid_class:'',sort_order:99}, 'gallery-list', galleryFields); }
+
+    // INDUSTRIES
+    const industryFields = [{key:'name',label:'Industry Name'},{key:'sort_order',label:'Order',type:'number'}];
+    async function loadIndustries() { const d = await api('industries','GET',null,'?order=sort_order'); renderList('industries-list', d, industryFields, 'industries'); }
+    function addIndustry() { addItem('industries', {name:'New Industry',sort_order:99}, 'industries-list', industryFields); }
+  </script>
+</body>
+</html>
