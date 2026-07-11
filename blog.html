@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog — Shirley Deena</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .blog-hero { padding: 8rem 2rem 4rem; text-align: center; }
+    .blog-hero h1 { font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-bottom: 1rem; }
+    .blog-hero p { color: var(--text-secondary); font-size: 1.1rem; }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; padding: 0 2rem 6rem; max-width: 1200px; margin: 0 auto; }
+    .blog-card { background: var(--bg-secondary); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius); overflow: hidden; transition: transform 0.3s, border-color 0.3s; text-decoration: none; color: inherit; }
+    .blog-card:hover { transform: translateY(-5px); border-color: rgba(168,85,247,0.3); }
+    .blog-card-cover { height: 180px; display: flex; align-items: flex-end; padding: 1.5rem; }
+    .blog-card-body { padding: 1.5rem; }
+    .blog-card-body h2 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; margin-bottom: 0.75rem; line-height: 1.3; }
+    .blog-card-body p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem; }
+    .blog-card-date { color: var(--accent); font-size: 0.8rem; }
+    .blog-empty { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+  </style>
+</head>
+<body style="cursor:auto;">
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">S.</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="blog.html" style="color:var(--text-primary)">Blog</a>
+      <a href="index.html#contact">Contact</a>
+    </div>
+    <a href="index.html#contact" class="nav-cta">Book Shirley</a>
+  </nav>
+
+  <section class="blog-hero">
+    <h1>Insights & <span class="gradient-text">Ideas</span></h1>
+    <p>Thoughts on learning, leadership, and capability building</p>
+  </section>
+
+  <div class="blog-grid" id="blogGrid">
+    <div class="blog-empty">Loading posts...</div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://wrfbvekawdsfqtyrynad.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyZmJ2ZWthd2RzZnF0eXJ5bmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTA3NjEsImV4cCI6MjA5OTM2Njc2MX0.D3pPMsBBb53g7z_n88g4ZHFuny6jgtJWpkXPDa0lji4';
+
+    async function loadPosts() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?published=eq.true&order=created_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY }
+      });
+      const posts = await res.json();
+      const grid = document.getElementById('blogGrid');
+
+      if (!posts.length) {
+        grid.innerHTML = '<div class="blog-empty">No posts yet. Check back soon!</div>';
+        return;
+      }
+
+      grid.innerHTML = posts.map(post => {
+        const bg = post.cover_image ? `background:url('${post.cover_image}') center/cover` : `background:${post.cover_gradient}`;
+        const date = new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        return `
+          <a href="post.html?slug=${post.slug}" class="blog-card">
+            <div class="blog-card-cover" style="${bg}"></div>
+            <div class="blog-card-body">
+              <h2>${post.title}</h2>
+              <p>${post.excerpt || ''}</p>
+              <span class="blog-card-date">${date}</span>
+            </div>
+          </a>
+        `;
+      }).join('');
+    }
+    loadPosts();
+  </script>
+</body>
+</html>

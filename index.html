@@ -13,6 +13,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Google Analytics (loaded dynamically from Supabase) -->
+  <script id="ga-script"></script>
 </head>
 <body>
   <!-- WhatsApp Float Button -->
@@ -320,6 +322,15 @@
     </div>
   </section>
 
+  <!-- Calendly Section -->
+  <section class="calendly-section" id="booking" style="display:none;">
+    <div class="container">
+      <div class="section-label">Book a Call</div>
+      <h2 class="calendly-headline reveal">Pick a time that works <span class="gradient-text">for you</span></h2>
+      <div class="calendly-embed reveal" id="calendly-container"></div>
+    </div>
+  </section>
+
   <!-- Contact Section -->
   <section class="contact" id="contact">
     <div class="container">
@@ -341,11 +352,12 @@
               LinkedIn
             </a>
           </div>
-          <form class="contact-form" action="https://formsubmit.co/shirley15architect@gmail.com" method="POST">
+          <form class="contact-form" id="contactForm">
             <input type="text" name="name" placeholder="Your name" required>
             <input type="email" name="email" placeholder="Your email" required>
             <textarea name="message" placeholder="Tell me about your capability gap..." rows="4" required></textarea>
             <button type="submit" class="form-btn">Send Message <span class="arrow">→</span></button>
+            <p class="form-success" style="display:none; color:#25D366; margin-top:0.75rem; font-size:0.9rem;">✓ Message sent! I'll get back to you soon.</p>
           </form>
         </div>
       </div>
@@ -361,6 +373,7 @@
         <a href="#experience">Experience</a>
         <a href="#programs">Programs</a>
         <a href="#speaking">Speaking</a>
+        <a href="blog.html">Blog</a>
         <a href="#contact">Contact</a>
       </div>
       <p>© 2024 Shirley Deena. Crafted with ✦</p>

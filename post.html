@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Post — Shirley Deena</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .post-wrapper { max-width: 760px; margin: 0 auto; padding: 8rem 2rem 4rem; }
+    .post-back { color: var(--accent); text-decoration: none; font-size: 0.9rem; display: inline-block; margin-bottom: 2rem; }
+    .post-back:hover { text-decoration: underline; }
+    .post-meta { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem; }
+    .post-title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; line-height: 1.2; margin-bottom: 2rem; }
+    .post-cover { width: 100%; height: 300px; border-radius: var(--radius); margin-bottom: 2.5rem; }
+    .post-content { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.9; }
+    .post-content h2 { font-family: var(--font-display); color: var(--text-primary); font-size: 1.5rem; margin: 2rem 0 1rem; }
+    .post-content h3 { font-family: var(--font-display); color: var(--text-primary); font-size: 1.2rem; margin: 1.5rem 0 0.75rem; }
+    .post-content p { margin-bottom: 1.2rem; }
+    .post-content strong { color: var(--text-primary); }
+    .post-content ul, .post-content ol { margin: 1rem 0 1.5rem 1.5rem; }
+    .post-content li { margin-bottom: 0.5rem; }
+    .post-content blockquote { border-left: 3px solid var(--accent); padding-left: 1.5rem; margin: 1.5rem 0; font-style: italic; color: var(--text-primary); }
+  </style>
+</head>
+<body style="cursor:auto;">
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">S.</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="blog.html" style="color:var(--text-primary)">Blog</a>
+      <a href="index.html#contact">Contact</a>
+    </div>
+    <a href="index.html#contact" class="nav-cta">Book Shirley</a>
+  </nav>
+
+  <article class="post-wrapper" id="postWrapper">
+    <a href="blog.html" class="post-back">← Back to Blog</a>
+    <p style="color:var(--text-secondary)">Loading...</p>
+  </article>
+
+  <script>
+    const SUPABASE_URL = 'https://wrfbvekawdsfqtyrynad.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyZmJ2ZWthd2RzZnF0eXJ5bmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTA3NjEsImV4cCI6MjA5OTM2Njc2MX0.D3pPMsBBb53g7z_n88g4ZHFuny6jgtJWpkXPDa0lji4';
+
+    async function loadPost() {
+      const slug = new URLSearchParams(window.location.search).get('slug');
+      if (!slug) { window.location.href = 'blog.html'; return; }
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?slug=eq.${slug}&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY }
+      });
+      const posts = await res.json();
+
+      if (!posts.length) {
+        document.getElementById('postWrapper').innerHTML = '<a href="blog.html" class="post-back">← Back to Blog</a><h1 class="post-title">Post not found</h1>';
+        return;
+      }
+
+      const post = posts[0];
+      document.title = `${post.title} — Shirley Deena`;
+      const date = new Date(post.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+      const bg = post.cover_image ? `background:url('${post.cover_image}') center/cover` : `background:${post.cover_gradient}`;
+
+      document.getElementById('postWrapper').innerHTML = `
+        <a href="blog.html" class="post-back">← Back to Blog</a>
+        <p class="post-meta">${date}</p>
+        <h1 class="post-title">${post.title}</h1>
+        <div class="post-cover" style="${bg}"></div>
+        <div class="post-content">${post.content}</div>
+      `;
+    }
+    loadPost();
+  </script>
+</body>
+</html>

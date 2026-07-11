@@ -91,7 +91,10 @@
       <a href="#" data-section="certifications">Certifications</a>
       <a href="#" data-section="gallery">Gallery</a>
       <a href="#" data-section="industries">Industries</a>
+      <a href="#" data-section="blog">Blog</a>
+      <a href="#" data-section="leads">Leads</a>
       <a href="#" data-section="contact">Contact</a>
+      <a href="#" data-section="settings">Settings</a>
       <a href="#" class="logout" onclick="logout()">← Logout</a>
     </nav>
 
@@ -187,6 +190,66 @@
           <button class="btn-save" onclick="saveContact()">Save Changes</button>
         </div>
       </div>
+
+      <!-- Blog Section -->
+      <div class="section-panel" id="panel-blog">
+        <h2>Blog Posts</h2>
+        <p class="subtitle">Write and publish articles for SEO</p>
+        <button class="btn-add" onclick="addBlogPost()">+ New Post</button>
+        <div id="blog-list"></div>
+      </div>
+
+      <!-- Leads Section -->
+      <div class="section-panel" id="panel-leads">
+        <h2>Leads Dashboard</h2>
+        <p class="subtitle">Form submissions from your website</p>
+        <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap;">
+          <div class="card" style="flex:1;min-width:150px;text-align:center;">
+            <div style="font-size:2rem;font-weight:800;color:#a855f7;" id="leads-total">0</div>
+            <div style="font-size:0.8rem;color:#a1a1aa;">Total Leads</div>
+          </div>
+          <div class="card" style="flex:1;min-width:150px;text-align:center;">
+            <div style="font-size:2rem;font-weight:800;color:#25D366;" id="leads-new">0</div>
+            <div style="font-size:0.8rem;color:#a1a1aa;">New</div>
+          </div>
+          <div class="card" style="flex:1;min-width:150px;text-align:center;">
+            <div style="font-size:2rem;font-weight:800;color:#f5af19;" id="leads-contacted">0</div>
+            <div style="font-size:0.8rem;color:#a1a1aa;">Contacted</div>
+          </div>
+        </div>
+        <div id="leads-list"></div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="section-panel" id="panel-settings">
+        <h2>Site Settings</h2>
+        <p class="subtitle">Integrations and configuration</p>
+        <div class="card">
+          <div class="form-group">
+            <label>Calendly URL (embed link)</label>
+            <input id="settings-calendly_url" placeholder="https://calendly.com/your-name/30min">
+          </div>
+          <div class="form-group">
+            <label>Google Analytics Measurement ID</label>
+            <input id="settings-ga_id" placeholder="G-XXXXXXXXXX">
+          </div>
+          <div class="form-group">
+            <label>Upload Profile Image</label>
+            <input type="file" id="profile-upload" accept="image/*" style="padding:0.5rem;">
+            <p style="font-size:0.75rem;color:#a1a1aa;margin-top:0.5rem;">Replaces the hero profile photo</p>
+          </div>
+          <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+        </div>
+        <div class="card" style="margin-top:1rem;">
+          <h3 style="margin-bottom:1rem;">Upload Gallery Image</h3>
+          <div class="form-group">
+            <label>Choose Image</label>
+            <input type="file" id="gallery-upload" accept="image/*" style="padding:0.5rem;">
+          </div>
+          <button class="btn-save" onclick="uploadGalleryImage()">Upload & Get URL</button>
+          <p id="gallery-upload-url" style="font-size:0.85rem;color:#25D366;margin-top:0.75rem;word-break:break-all;"></p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -249,11 +312,7 @@
       });
     });
 
-    // Load all data
-    async function loadAll() {
-      loadHero(); loadStats(); loadMethod(); loadSpeaking();
-      loadTestimonials(); loadCerts(); loadGallery(); loadIndustries(); loadContact();
-    }
+
 
     // HERO
     async function loadHero() {
@@ -390,6 +449,152 @@
     const industryFields = [{key:'name',label:'Industry Name'},{key:'sort_order',label:'Order',type:'number'}];
     async function loadIndustries() { const d = await api('industries','GET',null,'?order=sort_order'); renderList('industries-list', d, industryFields, 'industries'); }
     function addIndustry() { addItem('industries', {name:'New Industry',sort_order:99}, 'industries-list', industryFields); }
+
+    // BLOG
+    async function loadBlog() {
+      const posts = await api('blog_posts', 'GET', null, '?order=created_at.desc');
+      const container = document.getElementById('blog-list');
+      container.innerHTML = posts.map(post => `
+        <div class="card" id="card-${post.id}">
+          <div class="card-header">
+            <h3>${post.title} ${post.published ? '<span style="color:#25D366;font-size:0.75rem;">● Published</span>' : '<span style="color:#f5af19;font-size:0.75rem;">● Draft</span>'}</h3>
+            <div class="card-actions">
+              <button class="btn-edit" onclick="toggleEdit('${post.id}')">Edit</button>
+              <button class="btn-delete" onclick="deleteBlogPost('${post.id}')">Delete</button>
+            </div>
+          </div>
+          <div id="edit-${post.id}" style="display:none">
+            <div class="form-group"><label>Title</label><input id="field-${post.id}-title" value="${(post.title||'').replace(/"/g,'&quot;')}"></div>
+            <div class="form-group"><label>Slug (URL-friendly)</label><input id="field-${post.id}-slug" value="${post.slug||''}"></div>
+            <div class="form-group"><label>Excerpt</label><input id="field-${post.id}-excerpt" value="${(post.excerpt||'').replace(/"/g,'&quot;')}"></div>
+            <div class="form-group"><label>Content (HTML)</label><textarea id="field-${post.id}-content" rows="10">${post.content||''}</textarea></div>
+            <div class="form-row">
+              <div class="form-group"><label>Cover Gradient</label><input id="field-${post.id}-cover_gradient" value="${post.cover_gradient||''}"></div>
+              <div class="form-group"><label>Cover Image URL</label><input id="field-${post.id}-cover_image" value="${post.cover_image||''}"></div>
+            </div>
+            <div class="form-group"><label>Published</label><select id="field-${post.id}-published"><option value="true" ${post.published?'selected':''}>Yes</option><option value="false" ${!post.published?'selected':''}>No</option></select></div>
+            <button class="btn-save" onclick="saveBlogPost('${post.id}')">Save Post</button>
+          </div>
+        </div>
+      `).join('') || '<p style="color:#a1a1aa;">No posts yet.</p>';
+    }
+
+    async function addBlogPost() {
+      const slug = 'new-post-' + Date.now();
+      await api('blog_posts', 'POST', { title: 'New Post', slug, excerpt: '', content: '<p>Write your content here...</p>', published: false });
+      toast('Post created!');
+      loadBlog();
+    }
+
+    async function saveBlogPost(id) {
+      const body = {
+        title: document.getElementById(`field-${id}-title`).value,
+        slug: document.getElementById(`field-${id}-slug`).value,
+        excerpt: document.getElementById(`field-${id}-excerpt`).value,
+        content: document.getElementById(`field-${id}-content`).value,
+        cover_gradient: document.getElementById(`field-${id}-cover_gradient`).value,
+        cover_image: document.getElementById(`field-${id}-cover_image`).value,
+        published: document.getElementById(`field-${id}-published`).value === 'true',
+        updated_at: new Date().toISOString()
+      };
+      await api('blog_posts', 'PATCH', body, `?id=eq.${id}`);
+      toast('Post saved!');
+      loadBlog();
+    }
+
+    async function deleteBlogPost(id) {
+      if (!confirm('Delete this post?')) return;
+      await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${id}`, { method: 'DELETE', headers });
+      toast('Deleted!');
+      loadBlog();
+    }
+
+    // LEADS
+    async function loadLeads() {
+      const leads = await api('leads', 'GET', null, '?order=created_at.desc');
+      document.getElementById('leads-total').textContent = leads.length;
+      document.getElementById('leads-new').textContent = leads.filter(l => l.status === 'new').length;
+      document.getElementById('leads-contacted').textContent = leads.filter(l => l.status === 'contacted').length;
+
+      const container = document.getElementById('leads-list');
+      container.innerHTML = leads.map(lead => {
+        const date = new Date(lead.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        const statusColor = lead.status === 'new' ? '#25D366' : lead.status === 'contacted' ? '#f5af19' : '#a1a1aa';
+        return `
+          <div class="card">
+            <div class="card-header">
+              <h3>${lead.name} <span style="color:${statusColor};font-size:0.75rem;">● ${lead.status}</span></h3>
+              <div class="card-actions">
+                <button class="btn-edit" onclick="updateLeadStatus('${lead.id}','contacted')">Mark Contacted</button>
+                <button class="btn-delete" onclick="updateLeadStatus('${lead.id}','closed')">Close</button>
+              </div>
+            </div>
+            <p style="color:#a1a1aa;font-size:0.85rem;margin-bottom:0.5rem;">${lead.email} · ${date}</p>
+            <p style="font-size:0.9rem;">${lead.message || 'No message'}</p>
+          </div>
+        `;
+      }).join('') || '<p style="color:#a1a1aa;">No leads yet. They\'ll appear here when someone submits the contact form.</p>';
+    }
+
+    async function updateLeadStatus(id, status) {
+      await api('leads', 'PATCH', { status }, `?id=eq.${id}`);
+      toast(`Lead marked as ${status}`);
+      loadLeads();
+    }
+
+    // SETTINGS
+    async function loadSettings() {
+      const data = await api('site_settings');
+      if (data[0]) {
+        document.getElementById('settings-calendly_url').value = data[0].calendly_url || '';
+        document.getElementById('settings-ga_id').value = data[0].google_analytics_id || '';
+      }
+    }
+
+    async function saveSettings() {
+      const data = await api('site_settings');
+      const id = data[0]?.id;
+      const body = {
+        calendly_url: document.getElementById('settings-calendly_url').value,
+        google_analytics_id: document.getElementById('settings-ga_id').value
+      };
+      await api('site_settings', 'PATCH', body, `?id=eq.${id}`);
+
+      // Upload profile image if selected
+      const fileInput = document.getElementById('profile-upload');
+      if (fileInput.files[0]) {
+        await uploadImage(fileInput.files[0], 'profile.png');
+      }
+      toast('Settings saved!');
+    }
+
+    // IMAGE UPLOAD
+    async function uploadImage(file, filename) {
+      const path = `uploads/${filename}`;
+      await fetch(`${SUPABASE_URL}/storage/v1/object/images/${path}`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' },
+        body: file
+      });
+      return `${SUPABASE_URL}/storage/v1/object/public/images/${path}`;
+    }
+
+    async function uploadGalleryImage() {
+      const fileInput = document.getElementById('gallery-upload');
+      if (!fileInput.files[0]) { toast('Select a file first'); return; }
+      const file = fileInput.files[0];
+      const filename = `gallery-${Date.now()}.${file.name.split('.').pop()}`;
+      const url = await uploadImage(file, filename);
+      document.getElementById('gallery-upload-url').textContent = `✓ Uploaded! URL: ${url}`;
+      toast('Image uploaded! Copy the URL and paste it in Gallery → Image URL');
+    }
+
+    // Update loadAll
+    async function loadAll() {
+      loadHero(); loadStats(); loadMethod(); loadSpeaking();
+      loadTestimonials(); loadCerts(); loadGallery(); loadIndustries();
+      loadContact(); loadBlog(); loadLeads(); loadSettings();
+    }
   </script>
 </body>
 </html>

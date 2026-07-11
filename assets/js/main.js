@@ -7,6 +7,35 @@ async function fetchTable(table, order = 'sort_order') {
   return res.json();
 }
 
+// Load site settings (GA, Calendly)
+async function loadSettings() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers });
+  const data = await res.json();
+  if (data[0]) {
+    // Google Analytics
+    if (data[0].google_analytics_id) {
+      const gaId = data[0].google_analytics_id;
+      const script = document.createElement('script');
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+      script.async = true;
+      document.head.appendChild(script);
+      script.onload = () => {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', gaId);
+      };
+    }
+    // Calendly
+    if (data[0].calendly_url) {
+      const section = document.querySelector('.calendly-section');
+      section.style.display = 'block';
+      document.getElementById('calendly-container').innerHTML = `<iframe src="${data[0].calendly_url}" loading="lazy"></iframe>`;
+    }
+  }
+}
+loadSettings();
+
 // Load and render all content
 async function loadContent() {
   const [hero, stats, methods, speaking, testimonials, certs, gallery, industries, contact] = await Promise.all([
@@ -224,3 +253,22 @@ function initAnimations() {
 
 // Load content on page ready
 loadContent();
+
+// Lead capture form
+document.getElementById('contactForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const body = {
+    name: form.name.value,
+    email: form.email.value,
+    message: form.message.value
+  };
+  await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(body)
+  });
+  form.reset();
+  form.querySelector('.form-success').style.display = 'block';
+  setTimeout(() => form.querySelector('.form-success').style.display = 'none', 5000);
+});
