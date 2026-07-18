@@ -1,3 +1,9 @@
+const ALLOWED_SUPABASE_HOST = /^https:\/\/[a-z0-9]+\.supabase\.co$/;
+
+if (!SUPABASE_URL || !ALLOWED_SUPABASE_HOST.test(SUPABASE_URL)) {
+  throw new Error('Invalid or missing Supabase URL.');
+}
+
 const headers = { 'apikey': SUPABASE_KEY };
 
 async function fetchTable(table, order = 'sort_order') {
