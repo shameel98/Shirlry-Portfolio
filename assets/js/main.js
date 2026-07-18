@@ -1,5 +1,3 @@
-const SUPABASE_URL = 'https://wrfbvekawdsfqtyrynad.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyZmJ2ZWthd2RzZnF0eXJ5bmFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3OTA3NjEsImV4cCI6MjA5OTM2Njc2MX0.D3pPMsBBb53g7z_n88g4ZHFuny6jgtJWpkXPDa0lji4';
 const headers = { 'apikey': SUPABASE_KEY };
 
 async function fetchTable(table, order = 'sort_order') {
@@ -30,7 +28,14 @@ async function loadSettings() {
     if (data[0].calendly_url) {
       const section = document.querySelector('.calendly-section');
       section.style.display = 'block';
-      document.getElementById('calendly-container').innerHTML = `<iframe src="${data[0].calendly_url}" loading="lazy"></iframe>`;
+      const calendlyUrl = data[0].calendly_url;
+      try {
+        const parsed = new URL(calendlyUrl);
+        if (parsed.hostname !== 'calendly.com') throw new Error('Invalid host');
+        document.getElementById('calendly-container').innerHTML = `<iframe src="${parsed.href}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+      } catch (_) {
+        console.warn('Invalid Calendly URL, skipping embed.');
+      }
     }
   }
 }
