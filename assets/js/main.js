@@ -249,11 +249,31 @@ function initAnimations() {
     y: 60, opacity: 0, stagger: 0.15, duration: 0.8, ease: 'power3.out'
   });
 
-  // Nav scroll
-  window.addEventListener('scroll', () => {
-    document.querySelector('.nav').style.background = window.scrollY > 50
-      ? 'rgba(10, 10, 15, 0.95)' : 'rgba(10, 10, 15, 0.7)';
+  // Scroll Progress Bar
+  const progressBar = document.querySelector('.scroll-progress');
+  function updateProgress() {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (scrolled / total * 100) + '%';
+  }
+  window.addEventListener('scroll', updateProgress, { passive: true });
+
+  // Dark Mode Toggle
+  const darkToggle = document.querySelector('.dark-mode-toggle');
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') document.body.classList.add('light-mode');
+  darkToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    localStorage.setItem('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
   });
+
+  // Nav scroll
+  const nav = document.querySelector('.nav');
+  function updateNav() {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  }
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
 }
 
 // Load content on page ready
