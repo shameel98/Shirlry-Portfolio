@@ -96,7 +96,7 @@ body {
   justify-content: space-between;
   z-index: 100;
   backdrop-filter: blur(20px);
-  background: rgba(10, 10, 15, 0.7);
+  background: var(--nav-bg);
 }
 .nav-logo {
   font-family: var(--font-display);
@@ -173,6 +173,8 @@ body.light-mode .dark-mode-toggle .icon-sun { display: block; }
   display: none;
   flex-direction: column;
   gap: 5px;
+  position: relative;
+  z-index: 102;
   background: none;
   border: none;
   cursor: pointer;
@@ -203,7 +205,7 @@ body.light-mode .dark-mode-toggle .icon-sun { display: block; }
   align-items: center;
   justify-content: center;
   gap: 2rem;
-  z-index: 99;
+  z-index: 101;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s;
