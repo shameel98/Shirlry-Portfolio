@@ -1,15 +1,17 @@
-const ALLOWED_SUPABASE_HOST = /^https:\/\/[a-z0-9]+\.supabase\.co$/;
-
 const headers = { 'apikey': SUPABASE_KEY };
 
 async function fetchTable(table, order = 'sort_order') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=${order}`, { headers });
+  const url = `${SUPABASE_URL}/rest/v1/${table}?order=${order}`;
+  assertSupabaseURL(url);
+  const res = await fetch(url, { headers });
   return res.json();
 }
 
 // Load site settings (GA, Calendly)
 async function loadSettings() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers });
+  const url = `${SUPABASE_URL}/rest/v1/site_settings?select=*`;
+  assertSupabaseURL(url);
+  const res = await fetch(url, { headers });
   const data = await res.json();
   if (data[0]) {
     // Google Analytics
@@ -290,7 +292,9 @@ document.getElementById('contactForm')?.addEventListener('submit', async (e) => 
     email: form.email.value,
     message: form.message.value
   };
-  await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+  const leadsUrl = `${SUPABASE_URL}/rest/v1/leads`;
+  assertSupabaseURL(leadsUrl);
+  await fetch(leadsUrl, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
     body: JSON.stringify(body)

@@ -260,9 +260,11 @@
     const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
 
     async function api(table, method = 'GET', body = null, query = '') {
+      const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+      assertSupabaseURL(url);
       const opts = { method, headers };
       if (body) opts.body = JSON.stringify(body);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, opts);
+      const res = await fetch(url, opts);
       return res.json();
     }
 
@@ -407,7 +409,9 @@
 
     async function deleteItem(table, id, containerId) {
       if (!confirm('Delete this item?')) return;
-      await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, { method: 'DELETE', headers });
+      const delUrl = `${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`;
+      assertSupabaseURL(delUrl);
+      await fetch(delUrl, { method: 'DELETE', headers });
       document.getElementById(`card-${id}`)?.remove();
       toast('Deleted!');
     }
@@ -512,7 +516,9 @@
 
     async function deleteBlogPost(id) {
       if (!confirm('Delete this post?')) return;
-      await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${id}`, { method: 'DELETE', headers });
+      const delUrl = `${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${id}`;
+      assertSupabaseURL(delUrl);
+      await fetch(delUrl, { method: 'DELETE', headers });
       toast('Deleted!');
       loadBlog();
     }
@@ -579,7 +585,9 @@
     // IMAGE UPLOAD
     async function uploadImage(file, filename) {
       const path = `uploads/${filename}`;
-      await fetch(`${SUPABASE_URL}/storage/v1/object/images/${path}`, {
+      const storageUrl = `${SUPABASE_URL}/storage/v1/object/images/${path}`;
+      assertSupabaseURL(storageUrl);
+      await fetch(storageUrl, {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': file.type, 'x-upsert': 'true' },
         body: file
