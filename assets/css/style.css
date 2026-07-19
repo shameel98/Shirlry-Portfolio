@@ -363,18 +363,7 @@ body.light-mode .dark-mode-toggle .icon-sun { display: block; }
   50% { transform: translate(20px, -20px); }
 }
 
-.hero-scroll {
-  position: absolute;
-  bottom: 2rem;
-  left: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-}
+.hero-scroll { display: none; }
 .scroll-line {
   width: 1px; height: 40px;
   background: var(--gradient);
